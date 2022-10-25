@@ -15,3 +15,36 @@
 成果展示(二) **點選其中一個Marker，即可顯示其座標序及座標值**
 
 ![image](https://github.com/kungyanling/The-Inter-Process-Communication-and-Coordinates-Plotting/blob/main/%E6%88%90%E6%9E%9C%E5%B1%95%E7%A4%BA(%E4%BA%8C).png)
+
+## 小小經驗分享
+1. 編譯時，記得要在最後方加入指定標頭檔的目錄路徑" -lzmq -ljson-c"，不然會無法編譯且錯誤訊息顯示"undefined reference to"
+2. 由於client.c傳給sever.py的整數會變成bytes，所以要利用int.from_bytes(bytes, byteorder, *, signed=False)將其轉換為整數，才能做後續的計算，計算完畢後，要再將其要利用 int.to_bytes(length, byteorder)轉換為bytes才能回傳給client.c
+
+**注意 : 上述byteorder在int.from_bytes中要用"big"，而在int.to_bytes中要用"little"，如若用"big"，則每一個回傳的值皆會變為0。而上述length則是建議100000，如此才不會因太短而出錯**
+
+## 我的獨到之處
+
+核心程式碼片段(一) client.c
+
+![image](https://github.com/kungyanling/The-Inter-Process-Communication-and-Coordinates-Plotting/blob/main/%E6%A0%B8%E5%BF%83%E7%A8%8B%E5%BC%8F%E7%A2%BC%E7%89%87%E6%AE%B5(%E4%B8%80).png)
+
+1. 利用srand(time(NULL))，可以使每次產生的亂數都不相同
+2. 透過for迴圈可以控制產生的座標數，只要更改一個數字即可
+3. 在產生完所有的座標後，由於傳送的數字不可能為0，因此可以利用client.c傳送0，使sever.py跳出不停接收訊息的while迴圈
+4. 傳輸完畢後，即可關閉socket與摧毀context，確保程式能正常運行並做後續json檔的操作
+
+核心程式碼片段(二) sever.py
+
+![image](https://github.com/kungyanling/The-Inter-Process-Communication-and-Coordinates-Plotting/blob/main/%E6%A0%B8%E5%BF%83%E7%A8%8B%E5%BC%8F%E7%A2%BC%E7%89%87%E6%AE%B5(%E4%BA%8C).png)
+
+1. 同核心程式碼片段(一)第三點，由於為了做後續計算處理，皆須將收到的bytes轉換為整數，因而在轉換後，加上判斷式，當接收到作為結束指令的數字0，即可跳出迴圈做後續的json檔處理與座標繪圖
+2. time.sleep(1)在此休息一秒是為了等候client.c將資料存入json檔並建立location.json檔，以免之後讀取時找不到檔案
+
+核心程式碼片段(三) sever.py
+
+![image](https://github.com/kungyanling/The-Inter-Process-Communication-and-Coordinates-Plotting/blob/main/%E6%A0%B8%E5%BF%83%E7%A8%8B%E5%BC%8F%E7%A2%BC%E7%89%87%E6%AE%B5(%E4%B8%89).png)
+
+1. 由於json檔資料讀取後，檔案型別為list且其中資料並沒有做切割處理，因此利用 result = [] 產生一個空list，存入切割完的座標們
+2. 由於座標皆為兩兩一組，故而利用 n = math.ceil(len(p) / 2) 求出總共要切割出的座標數
+3. 再利用for迴圈與list.append()函數將座標們兩個為一組存入 result 中 **注意 : p[idx : idx + 2] 其實只會存取 p[idx] 與 p[idx + 1] 的值
+4. 利用for迴圈搭配folium.Marker，即可在圖上將每一個座標點加上Marker，並得以顯示其座標序及座標值
