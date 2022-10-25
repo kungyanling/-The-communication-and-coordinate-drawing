@@ -2,7 +2,7 @@
 利用 zeroMQ 使 client.c 與用 sever.py 可以相互通訊，client.c 產生緯度，sever.py 產生經度，由 client.c 將座標存入並生成 location.json 檔，再由 sever.py 做後續 json檔的讀取、座標串列切割與繪圖，
 而繪圖是利用 folium 模組，可以在世界地圖上繪圖，將隨機生成的座標畫成路線圖並標出座標點
 ## 使用介紹
-在 Ubuntu Terminal 內執行 run.py 檔，即可自動執行 makefile、client.c 與 sever.py。**注意 : 上述四個檔案皆放置在同一資料夾內，才不會出錯!**
+在 Ubuntu Terminal 內執行 run.py 檔，即可自動執行 makefile、client.c 與 sever.py。**注意 : 上述四個檔案皆放置在同一資料夾內，才不會出錯**
 
 執行範例
 
